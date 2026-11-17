@@ -1,0 +1,14 @@
+{
+  "name": "券小站",
+  "appid": "",
+  "description": "优惠券推广与个人订单小程序",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "vueVersion": "3",
+  "mp-weixin": {
+    "appid": "",
+    "setting": { "urlCheck": true, "es6": true, "minified": true },
+    "usingComponents": true
+  },
+  "h5": { "title": "券小站", "router": { "mode": "hash" } }
+}

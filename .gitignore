@@ -1,0 +1,11 @@
+.idea/
+node_modules/
+dist/
+unpackage/
+.cache/
+.env.local
+.env.*.local
+.env
+/project.config.json
+project.private.config.json
+*.log
