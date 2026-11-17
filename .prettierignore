@@ -1,0 +1,10 @@
+node_modules/
+dist/
+unpackage/
+.cache/
+.git/
+**/target/
+**/data/
+docs/screenshots/
+project.config.json
+project.private.config.json

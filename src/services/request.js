@@ -1,6 +1,8 @@
+/** 统一请求适配器：处理认证、业务响应、超时以及切换账号或服务器后的过期响应。 */
 import { getBaseUrl, getRequestUrl } from '../config.js';
 import { getSession, clearSession } from './session.js';
 
+/** 通过依赖注入构造请求客户端，便于 uni 环境调用和独立测试。 */
 export function createRequestClient({ getBaseUrl, getRequestUrl, getSession, clearSession, send }) {
   return function request(path, options = {}) {
     return new Promise((resolve, reject) => {
@@ -12,6 +14,7 @@ export function createRequestClient({ getBaseUrl, getRequestUrl, getSession, cle
         return;
       }
 
+      /** 请求完成时重新检查服务器和账号，阻止旧环境响应覆盖当前页面。 */
       function contextChanged() {
         if (origin !== getBaseUrl()) {
           reject(requestError('接口地址已变化，请重新加载', 'CONTEXT_CHANGED'));
@@ -31,7 +34,7 @@ export function createRequestClient({ getBaseUrl, getRequestUrl, getSession, cle
         timeout: 10000,
         header: {
           'content-type': 'application/json',
-          ...(session ? { Authorization: `Bearer ${session.token}` } : {})
+          ...(session ? { Authorization: `Bearer ${session.token}` } : {}),
         },
         success(response) {
           if (contextChanged()) return;
@@ -41,13 +44,23 @@ export function createRequestClient({ getBaseUrl, getRequestUrl, getSession, cle
             return;
           }
           if (response.statusCode === 401 && session) clearSession(session.token);
-          reject(requestError(body?.message || `请求失败（${response.statusCode}）`, body?.code || 'HTTP_ERROR'));
+          reject(
+            requestError(
+              body?.message || `请求失败（${response.statusCode}）`,
+              body?.code || 'HTTP_ERROR'
+            )
+          );
         },
         fail(error) {
           if (contextChanged()) return;
           const timeout = String(error.errMsg).includes('timeout');
-          reject(requestError(timeout ? '连接超时，请重试' : '无法连接后端，请检查接口地址和服务状态', 'NETWORK_ERROR'));
-        }
+          reject(
+            requestError(
+              timeout ? '连接超时，请重试' : '无法连接后端，请检查接口地址和服务状态',
+              'NETWORK_ERROR'
+            )
+          );
+        },
       });
     });
   };
@@ -58,9 +71,10 @@ export const request = createRequestClient({
   getRequestUrl,
   getSession,
   clearSession,
-  send: options => uni.request(options)
+  send: options => uni.request(options),
 });
 
+/** 保留可读文案和稳定错误码，供页面按场景展示或分支处理。 */
 function requestError(message, code) {
   const error = new Error(message);
   error.code = code;

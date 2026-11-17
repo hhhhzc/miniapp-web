@@ -12,7 +12,11 @@ test('valid sessions round-trip through uni storage', () => {
 });
 
 test('expired and malformed sessions are discarded', () => {
-  for (const invalid of [{ token: 'incomplete' }, { ...activeSession(), expiresAt: 'invalid' }, { ...activeSession(), expiresAt: '2000-01-01T00:00:00Z' }]) {
+  for (const invalid of [
+    { token: 'incomplete' },
+    { ...activeSession(), expiresAt: 'invalid' },
+    { ...activeSession(), expiresAt: '2000-01-01T00:00:00Z' },
+  ]) {
     const { values } = installUni({ [STORAGE_KEYS.session]: invalid });
     assert.equal(getSession(), null);
     assert.ok(!values.has(STORAGE_KEYS.session));

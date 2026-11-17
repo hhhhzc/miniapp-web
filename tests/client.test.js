@@ -15,7 +15,10 @@ test('public requests do not carry a logged-in user token', async () => {
 
 test('protected requests require login before sending any network request', async () => {
   const { requests } = installUni();
-  await assert.rejects(request('/api/v1/orders/me', { auth: true }), error => error.code === 'UNAUTHORIZED');
+  await assert.rejects(
+    request('/api/v1/orders/me', { auth: true }),
+    error => error.code === 'UNAUTHORIZED'
+  );
   assert.equal(requests.length, 0);
 });
 
@@ -65,7 +68,9 @@ test('responses from a previous API origin cannot update current data', async ()
     getRequestUrl: path => origin + path,
     getSession: () => null,
     clearSession() {},
-    send(options) { outgoing = options; }
+    send(options) {
+      outgoing = options;
+    },
   });
   const pending = client('/api/v1/coupons');
   const rejected = assert.rejects(pending, error => error.code === 'CONTEXT_CHANGED');
@@ -77,7 +82,7 @@ test('responses from a previous API origin cannot update current data', async ()
 test('business errors, invalid envelopes and timeouts remain visible to callers', async () => {
   for (const response of [
     { statusCode: 503, data: { code: 'INTEGRATION_NOT_CONFIGURED', message: 'pending' } },
-    { statusCode: 200, data: '<html>bad gateway</html>' }
+    { statusCode: 200, data: '<html>bad gateway</html>' },
   ]) {
     const { requests } = installUni();
     const pending = request('/api/v1/test');

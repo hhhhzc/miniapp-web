@@ -11,14 +11,20 @@ function configuration(environment) {
     config: createApiConfiguration(environment, {
       get: key => state.values.get(key),
       set: (key, value) => state.values.set(key, value),
-      remove: key => state.values.delete(key)
-    })
+      remove: key => state.values.delete(key),
+    }),
   };
 }
 
 test('validates server origins and rejects credentials, paths and invalid ports', () => {
   assert.equal(normalizeBaseUrl(' https://api.example.com/ '), 'https://api.example.com');
-  for (const value of ['', 'file:///tmp', 'https://user:secret@example.com', 'https://a.com/path', 'http://localhost:99999']) {
+  for (const value of [
+    '',
+    'file:///tmp',
+    'https://user:secret@example.com',
+    'https://a.com/path',
+    'http://localhost:99999',
+  ]) {
     assert.throws(() => normalizeBaseUrl(value));
   }
 });
@@ -44,7 +50,10 @@ test('an empty development address resets H5 to its same-origin proxy', () => {
 
 test('production ignores development overrides and hides development login', () => {
   const { config, values } = configuration({
-    DEV: false, UNI_PLATFORM: 'mp-weixin', VITE_API_BASE_URL: 'https://api.example.com/', VITE_ENABLE_DEV_LOGIN: 'true'
+    DEV: false,
+    UNI_PLATFORM: 'mp-weixin',
+    VITE_API_BASE_URL: 'https://api.example.com/',
+    VITE_ENABLE_DEV_LOGIN: 'true',
   });
   values.set(STORAGE_KEYS.apiBaseUrl, 'http://127.0.0.1:8080');
   assert.equal(config.getBaseUrl(), 'https://api.example.com');

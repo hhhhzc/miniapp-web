@@ -1,9 +1,13 @@
+/** 按构建环境选择 API 地址；生产环境忽略本地开发覆盖配置。 */
 import { STORAGE_KEYS } from './constants/storage.js';
 
 const LOCAL_API_ORIGIN = 'http://127.0.0.1:8080';
 
+/** 限制接口地址为纯 HTTP/HTTPS 域名和可选端口，不接受凭据或业务路径。 */
 export function normalizeBaseUrl(value) {
-  const origin = String(value || '').trim().replace(/\/+$/, '');
+  const origin = String(value || '')
+    .trim()
+    .replace(/\/+$/, '');
   if (!/^https?:\/\/[a-zA-Z0-9.-]+(?::\d{1,5})?$/.test(origin)) {
     throw new Error('请输入有效的 HTTP 或 HTTPS 服务器地址');
   }
@@ -14,10 +18,12 @@ export function normalizeBaseUrl(value) {
   return origin;
 }
 
+/** 将环境判断与存储操作分离，确保生产地址和开发覆盖规则可独立验证。 */
 export function createApiConfiguration(environment, storage) {
   const development = environment.DEV === true;
   const platform = environment.UNI_PLATFORM || 'h5';
 
+  /** 开发优先使用临时覆盖地址，生产优先使用构建配置，H5 可使用同源代理。 */
   function getBaseUrl() {
     if (development) {
       const saved = storage.get(STORAGE_KEYS.apiBaseUrl);
@@ -30,6 +36,7 @@ export function createApiConfiguration(environment, storage) {
     return development ? LOCAL_API_ORIGIN : '';
   }
 
+  /** 仅开发模式允许切换服务，服务变化时同时清理原服务的会话。 */
   function setBaseUrl(value) {
     if (!development) throw new Error('接口地址只能在开发环境调整');
     const origin = String(value || '').trim() ? normalizeBaseUrl(value) : '';
@@ -41,6 +48,7 @@ export function createApiConfiguration(environment, storage) {
     return current;
   }
 
+  /** 校验站内接口路径，并阻止微信生产构建在缺少 API 域名时发起错误请求。 */
   function getRequestUrl(path) {
     if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) {
       throw new Error('接口路径必须是站内路径');
@@ -56,14 +64,14 @@ export function createApiConfiguration(environment, storage) {
     getBaseUrl,
     setBaseUrl,
     getRequestUrl,
-    showDevelopmentLogin: development && environment.VITE_ENABLE_DEV_LOGIN === 'true'
+    showDevelopmentLogin: development && environment.VITE_ENABLE_DEV_LOGIN === 'true',
   };
 }
 
 const configuration = createApiConfiguration(import.meta.env || {}, {
   get: key => uni.getStorageSync(key),
   set: (key, value) => uni.setStorageSync(key, value),
-  remove: key => uni.removeStorageSync(key)
+  remove: key => uni.removeStorageSync(key),
 });
 
 export const getBaseUrl = () => configuration.getBaseUrl();

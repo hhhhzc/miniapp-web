@@ -1,6 +1,8 @@
 # miniapp-web
 
-券小站前端，独立的 **uni-app + Vue 3 + Vite + JavaScript** 项目。
+券小站生活服务入口小程序，独立的 **uni-app + Vue 3 + Vite + JavaScript** 项目，包含 `admin-web/` 网页管理后台。
+
+第一版已实现可配置的图标宫格、双列活动卡片、轮播横幅、首页搜索、游客跳转和微信登录入口。后台支持模块与入口管理、排序、上下架和 PNG/JPEG 图片上传。完整启动、配置、部署和验证说明见 [第一版开发与使用](docs/v1-development.md)。
 
 - 前端目录：`D:\IDEA work\miniapp-web`。
 - 对应后端：`D:\IDEA work\miniapp-app`，保留六模块 DDD 设计。
@@ -11,8 +13,9 @@
 
 | 位置 | 职责 |
 | --- | --- |
-| src/pages/home | 领券首页、平台活动入口和推广跳转流程 |
-| src/pages/orders | 登录用户的个人订单列表 |
+| src/pages/home | 后台驱动的模块首页、内容搜索和游客跳转 |
+| admin-web | 管理员登录、模块与入口配置、图片上传 |
+| src/pages/orders | 保留原个人订单页面，本版导航不展示 |
 | src/pages/profile | 微信登录、个人中心、开发连接设置 |
 | src/services/api.js | 业务接口定义 |
 | src/services/request.js | HTTP 请求、token、超时和统一错误处理 |
@@ -48,7 +51,9 @@ HBuilderX 也可以直接导入本项目。H5 开发预览使用 `npm run dev:h5
 
 ## 业务与环境
 
-默认首页展示后端提供的活动入口。联盟接口尚待文档接入，未配置的平台按钮会显示“待接入”；没有虚构的优惠金额、链接和订单。
+首页通过 `/api/v1/home` 读取后端配置。后台保存后，重新进入首页或下拉刷新生效。本地初始数据有 4 个模块、16 个仅展示入口；管理员填入真实 AppID/path 后才能跳转。没有虚构的优惠金额、跳转链接或订单。普通入口不要求用户登录，也不依赖原联盟推广接口。
+
+后台开发：`npm run dev:admin`，访问 `http://127.0.0.1:5174/admin/`。首次启动后端前设置 `ADMIN_USERNAME` 与至少 12 位的 `ADMIN_PASSWORD`；没有固定默认管理密码。可运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-local.ps1` 交互输入密码并启动完整本地环境。
 
 `.env.development` 默认启用开发体验登录按钮，只在开发构建显示，需要后端 local profile 配合。这是共享体验身份，不代表真实微信登录。
 
@@ -70,8 +75,13 @@ AppSecret、数据库密码和联盟密钥只放后端，不能配置在前端�
 npm test
 npm run build:mp-weixin
 npm run build:h5
+npm run build:admin
 ```
 
 微信生产产物在 `dist/build/mp-weixin`，H5 生产产物在 `dist/build/h5`。源码与 package-lock.json 提交到前端独立仓库；node_modules、dist、缓存和本地环境配置不提交。
 
 详见 [架构与检查记录](docs/architecture-review.md)。
+
+## 代码格式与注释
+
+运行 `npm run format` 统一整理前后端代码，运行 `npm run format:check` 检查格式。前端使用 2 空格，Java/XML 使用 4 空格；类职责、关键方法和流程使用中文注释。范围和具体命令见 [代码格式和中文注释约定](docs/code-style.md)。

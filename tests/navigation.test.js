@@ -15,7 +15,7 @@ test('navigation uses only the backend-provided platform target', async () => {
       assert.equal(options.appId, 'documented-app-id');
       assert.equal(options.path, 'documented-path');
       options.success();
-    }
+    },
   };
   await navigateToPromotion({ appId: 'documented-app-id', path: 'documented-path' });
 });

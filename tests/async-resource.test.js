@@ -6,9 +6,11 @@ import { useAsyncResource } from '../src/composables/useAsyncResource.js';
 function resource() {
   const pending = [];
   const scope = effectScope();
-  const state = scope.run(() => useAsyncResource(() => new Promise((resolve, reject) => pending.push({ resolve, reject })), {
-    initialValue: () => []
-  }));
+  const state = scope.run(() =>
+    useAsyncResource(() => new Promise((resolve, reject) => pending.push({ resolve, reject })), {
+      initialValue: () => [],
+    })
+  );
   return { scope, state, pending };
 }
 
