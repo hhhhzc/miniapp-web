@@ -1,0 +1,60 @@
+name: miniapp
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请设置数据库 root 密码}
+      MYSQL_DATABASE: miniapp
+      MYSQL_USER: miniapp
+      MYSQL_PASSWORD: ${DB_PASSWORD:?请设置应用数据库密码}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+00:00
+      - --innodb-buffer-pool-size=256M
+      - --max-connections=80
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [CMD, mysqladmin, ping, -h, 127.0.0.1, --silent]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    logging:
+      driver: json-file
+      options: { max-size: 10m, max-file: '3' }
+  app:
+    image: eclipse-temurin:21-jre
+    restart: unless-stopped
+    working_dir: /app
+    command: [java, -jar, /app/app.jar]
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_PORT: '8080'
+      DB_URL: jdbc:mysql://db:3306/miniapp?useUnicode=true&characterEncoding=UTF-8&connectionTimeZone=UTC&allowPublicKeyRetrieval=true&sslMode=DISABLED
+      DB_USERNAME: miniapp
+      DB_PASSWORD: ${DB_PASSWORD:?请设置应用数据库密码}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?请设置至少8位管理密码}
+      WECHAT_APP_ID: ${WECHAT_APP_ID:-}
+      WECHAT_APP_SECRET: ${WECHAT_APP_SECRET:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
+      MEDIA_DIRECTORY: /var/lib/miniapp/uploads
+      JAVA_TOOL_OPTIONS: -Xms128m -Xmx512m -XX:+ExitOnOutOfMemoryError
+    ports:
+      - 127.0.0.1:8080:8080
+    volumes:
+      - ./app.jar:/app/app.jar:ro
+      - uploads:/var/lib/miniapp/uploads
+    depends_on:
+      db: { condition: service_healthy }
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options: { max-size: 10m, max-file: '3' }
+volumes:
+  mysql_data:
+  uploads:

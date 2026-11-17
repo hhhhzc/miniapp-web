@@ -7,7 +7,7 @@ import { activeSession, installUni } from './helpers/uni.js';
 
 test('public requests do not carry a logged-in user token', async () => {
   const { requests } = installUni({ [STORAGE_KEYS.session]: activeSession() });
-  const pending = request('/api/v1/coupons');
+  const pending = request('/api/v1/home');
   assert.equal(requests[0].header.Authorization, undefined);
   requests[0].success({ statusCode: 200, data: { code: '0000', data: [] } });
   assert.deepEqual(await pending, []);
@@ -16,7 +16,7 @@ test('public requests do not carry a logged-in user token', async () => {
 test('protected requests require login before sending any network request', async () => {
   const { requests } = installUni();
   await assert.rejects(
-    request('/api/v1/orders/me', { auth: true }),
+    request('/api/v1/users/me', { auth: true }),
     error => error.code === 'UNAUTHORIZED'
   );
   assert.equal(requests.length, 0);
@@ -44,7 +44,7 @@ test('an old 401 cannot clear a newer login session', async () => {
 
 test('an old successful private response is discarded after logout', async () => {
   const { requests } = installUni({ [STORAGE_KEYS.session]: activeSession() });
-  const pending = request('/api/v1/orders/me', { auth: true });
+  const pending = request('/api/v1/users/me', { auth: true });
   const rejected = assert.rejects(pending, error => error.code === 'SESSION_CHANGED');
   clearSession();
   requests[0].success({ statusCode: 200, data: { code: '0000', data: [{ id: 'private-order' }] } });
@@ -53,7 +53,7 @@ test('an old successful private response is discarded after logout', async () =>
 
 test('a 401 for the current session clears it and reports authentication failure', async () => {
   const { requests } = installUni({ [STORAGE_KEYS.session]: activeSession() });
-  const pending = request('/api/v1/orders/me', { auth: true });
+  const pending = request('/api/v1/users/me', { auth: true });
   const rejected = assert.rejects(pending, error => error.code === 'UNAUTHORIZED');
   requests[0].success({ statusCode: 401, data: { code: 'UNAUTHORIZED', message: 'expired' } });
   await rejected;
@@ -72,7 +72,7 @@ test('responses from a previous API origin cannot update current data', async ()
       outgoing = options;
     },
   });
-  const pending = client('/api/v1/coupons');
+  const pending = client('/api/v1/home');
   const rejected = assert.rejects(pending, error => error.code === 'CONTEXT_CHANGED');
   origin = 'https://api.example.com';
   outgoing.success({ statusCode: 200, data: { code: '0000', data: [] } });

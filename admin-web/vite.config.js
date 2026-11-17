@@ -13,7 +13,10 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     port: 5174,
-    proxy: { '/api': 'http://127.0.0.1:8080', '/media': 'http://127.0.0.1:8080' },
+    proxy: {
+      '/api': process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:8080',
+      '/media': process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:8080',
+    },
   },
   build: { outDir: '../dist/admin', emptyOutDir: true },
 });

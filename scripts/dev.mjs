@@ -9,17 +9,21 @@ const backend = path.resolve(
   process.env.MINIAPP_BACKEND_DIR || path.join(root, '..', 'miniapp-app')
 );
 const jar = path.join(backend, 'app', 'target', 'app.jar');
+// 使用 IDEA 调试后端时，只启动两个前端服务，避免重复占用后端端口。
+const frontendOnly = process.argv.includes('--frontend-only');
 const java = process.env.JAVA_HOME
   ? path.join(process.env.JAVA_HOME, 'bin', process.platform === 'win32' ? 'java.exe' : 'java')
   : 'java';
-if (!existsSync(jar)) throw new Error('请先在 miniapp-app 执行 Maven package 构建后端。');
+if (!frontendOnly && !existsSync(jar))
+  throw new Error('请先在 miniapp-app 执行 Maven package 构建后端。');
 if (
-  !process.env.ADMIN_USERNAME ||
-  !process.env.ADMIN_PASSWORD ||
-  process.env.ADMIN_PASSWORD.length < 12
+  !frontendOnly &&
+  (!process.env.ADMIN_USERNAME ||
+    !process.env.ADMIN_PASSWORD ||
+    process.env.ADMIN_PASSWORD.length < 8)
 ) {
   throw new Error(
-    '请先设置 ADMIN_USERNAME 和至少 12 位的 ADMIN_PASSWORD，或运行 scripts/start-local.ps1。'
+    '请先设置 ADMIN_USERNAME 和至少 8 位的 ADMIN_PASSWORD，或运行 scripts/start-local.ps1。'
   );
 }
 const children = [];
@@ -55,7 +59,7 @@ function start(command, args, cwd) {
 }
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);
-start(java, ['-jar', jar], backend);
+if (!frontendOnly) start(java, ['-jar', jar], backend);
 start(
   process.execPath,
   [
@@ -75,4 +79,8 @@ start(
 );
 console.log(
   '首页：http://127.0.0.1:5173/  后台：http://127.0.0.1:5174/admin/  Ctrl+C 停止本次启动的服务。'
+);
+// Swagger 直接访问 Java 的端口，不经过前端开发代理。
+console.log(
+  `接口调试：http://127.0.0.1:${process.env.SERVER_PORT || '8080'}/swagger-ui/index.html`
 );

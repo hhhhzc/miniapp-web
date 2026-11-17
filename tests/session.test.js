@@ -16,6 +16,9 @@ test('expired and malformed sessions are discarded', () => {
     { token: 'incomplete' },
     { ...activeSession(), expiresAt: 'invalid' },
     { ...activeSession(), expiresAt: '2000-01-01T00:00:00Z' },
+    { ...activeSession(), user: { id: 'old-uuid' } },
+    { ...activeSession(), user: { id: 0 } },
+    { ...activeSession(), user: { id: -1 } },
   ]) {
     const { values } = installUni({ [STORAGE_KEYS.session]: invalid });
     assert.equal(getSession(), null);

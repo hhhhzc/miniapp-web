@@ -3,7 +3,7 @@
 import { computed, ref } from 'vue';
 import { onShow, onPullDownRefresh } from '@dcloudio/uni-app';
 import { getHome } from '../../services/api.js';
-import { navigateToPromotion } from '../../services/navigation.js';
+import { navigateToMiniProgram } from '../../services/navigation.js';
 import { filterModules, resolveImageUrl } from '../../services/home.js';
 import { useAsyncResource } from '../../composables/useAsyncResource.js';
 // 页面只维护展示状态，模块和入口的发布范围由后端公开接口决定。
@@ -54,7 +54,7 @@ async function open(entry) {
   // #ifdef MP-WEIXIN
   busy.value = true;
   try {
-    await navigateToPromotion(entry);
+    await navigateToMiniProgram(entry);
   } catch (failure) {
     if (failure.code !== 'NAVIGATION_CANCELLED')
       uni.showToast({ title: failure.message, icon: 'none' });

@@ -7,8 +7,8 @@ function isValidSession(session) {
     session &&
     typeof session.token === 'string' &&
     session.token.trim() &&
-    typeof session.user?.id === 'string' &&
-    session.user.id &&
+    Number.isInteger(session.user?.id) &&
+    session.user.id > 0 &&
     Number.isFinite(Date.parse(session.expiresAt)) &&
     Date.parse(session.expiresAt) > Date.now()
   );

@@ -106,6 +106,7 @@ if (!args.has('--backend-only') && !stageBackend) {
     'admin-web',
     'tests',
     'scripts',
+    'deploy',
     'package.json',
     'package-lock.json',
     'vite.config.js',

@@ -2,7 +2,11 @@
 
 券小站生活服务入口小程序，独立的 **uni-app + Vue 3 + Vite + JavaScript** 项目，包含 `admin-web/` 网页管理后台。
 
-第一版已实现可配置的图标宫格、双列活动卡片、轮播横幅、首页搜索、游客跳转和微信登录入口。后台支持模块与入口管理、排序、上下架和 PNG/JPEG 图片上传。完整启动、配置、部署和验证说明见 [第一版开发与使用](docs/v1-development.md)。
+当前简版只保留微信登录和首页配置，共三张表，使用自增 INT 主键；本地 Swagger 地址为 http://127.0.0.1:8080/swagger-ui/index.html。
+
+页面已实现可配置的图标宫格、双列活动卡片、轮播横幅、首页搜索、游客跳转和微信登录入口。后台支持模块与入口管理、排序、上下架和 PNG/JPEG 图片上传。完整启动、配置、部署和验证说明见 [第一版开发与使用](docs/v1-development.md)。
+
+数据库、本机 MySQL、IDEA 断点联调及服务器上线请看 [操作手册](docs/deployment-and-debugging.md)。本地项目 MySQL 使用 `127.0.0.1:3307`；一键启动脚本默认使用 MySQL，`-FrontendOnly` 可连接已经在 IDEA 中运行的后端。`scripts/package-release.ps1` 可生成包含 Jar、管理页面、SQL 和部署模板的上线包。
 
 - 前端目录：`D:\IDEA work\miniapp-web`。
 - 对应后端：`D:\IDEA work\miniapp-app`，保留六模块 DDD 设计。
@@ -15,7 +19,6 @@
 | --- | --- |
 | src/pages/home | 后台驱动的模块首页、内容搜索和游客跳转 |
 | admin-web | 管理员登录、模块与入口配置、图片上传 |
-| src/pages/orders | 保留原个人订单页面，本版导航不展示 |
 | src/pages/profile | 微信登录、个人中心、开发连接设置 |
 | src/services/api.js | 业务接口定义 |
 | src/services/request.js | HTTP 请求、token、超时和统一错误处理 |
@@ -23,14 +26,13 @@
 | src/services/navigation.js | 平台小程序跳转 |
 | src/composables/useAsyncResource.js | 页面共享异步加载状态，避免过期请求覆盖新结果 |
 | src/constants/storage.js | 统一管理本地存储键 |
-| src/utils | 日期、金额、状态等格式化 |
 | src/config.js | API 地址和开发开关 |
 | src/pages.json | 页面路由和底部导航 |
 | src/manifest.json | 平台 AppID 等配置 |
 
 页面使用 Vue Composition API 和 ref 维护状态，登录信息通过 uni 本地存储管理。当前没有 Pinia 或额外 UI 组件库。现有三个页面使用页面层、接口层、请求层和共享 composable，规模扩大后再提取重复 UI 组件。
 
-公共接口不携带 token，个人订单等受保护接口显式启用认证。请求会记录发起时的接口地址与会话，过期响应不能覆盖新账号状态，旧401也不会清除新登录。会话到期或存储损坏时自动清除。
+公共接口不携带 token，当前用户等受保护接口显式启用认证。请求会记录发起时的接口地址与会话，过期响应不能覆盖新账号状态，旧401也不会清除新登录。会话到期或存储损坏时自动清除。
 
 ## 启动
 
@@ -53,7 +55,7 @@ HBuilderX 也可以直接导入本项目。H5 开发预览使用 `npm run dev:h5
 
 首页通过 `/api/v1/home` 读取后端配置。后台保存后，重新进入首页或下拉刷新生效。本地初始数据有 4 个模块、16 个仅展示入口；管理员填入真实 AppID/path 后才能跳转。没有虚构的优惠金额、跳转链接或订单。普通入口不要求用户登录，也不依赖原联盟推广接口。
 
-后台开发：`npm run dev:admin`，访问 `http://127.0.0.1:5174/admin/`。首次启动后端前设置 `ADMIN_USERNAME` 与至少 12 位的 `ADMIN_PASSWORD`；没有固定默认管理密码。可运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-local.ps1` 交互输入密码并启动完整本地环境。
+后台开发：`npm run dev:admin`，访问 `http://127.0.0.1:5174/admin/`。本机后台账号为 `admin`，密码为 `miniapp123`，与 root、miniapp 数据库账号密码保持一致；可通过环境变量修改。可运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\start-local.ps1` 使用本机项目 MySQL 启动完整环境，或追加 `-Database H2` 使用原本地体验模式。
 
 `.env.development` 默认启用开发体验登录按钮，只在开发构建显示，需要后端 local profile 配合。这是共享体验身份，不代表真实微信登录。
 
@@ -67,7 +69,7 @@ VITE_API_BASE_URL=https://你的接口域名
 
 生产构建忽略开发时保存的接口地址，始终隐藏开发登录和连接设置。微信生产请求必须配置接口地址；H5 生产环境可配置该地址，或通过同源反向代理转发 `/api`。
 
-AppSecret、数据库密码和联盟密钥只放后端，不能配置在前端。手机真机开发时用电脑局域网 IP 访问后端，同一网络下联调。
+AppSecret 和数据库密码只放后端，不能配置在前端。手机真机开发时用电脑局域网 IP 访问后端，同一网络下联调。
 
 ## 检查与构建
 

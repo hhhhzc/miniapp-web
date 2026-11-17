@@ -43,7 +43,7 @@ test('an empty development address resets H5 to its same-origin proxy', () => {
   config.setBaseUrl('http://192.168.1.10:8080');
   values.set(STORAGE_KEYS.session, activeSession());
   assert.equal(config.setBaseUrl('  '), '');
-  assert.equal(config.getRequestUrl('/api/v1/coupons'), '/api/v1/coupons');
+  assert.equal(config.getRequestUrl('/api/v1/home'), '/api/v1/home');
   assert.ok(!values.has(STORAGE_KEYS.session));
   assert.ok(!values.has(STORAGE_KEYS.apiBaseUrl));
 });
@@ -63,8 +63,8 @@ test('production ignores development overrides and hides development login', () 
 
 test('production WeChat requests require an API origin; H5 may use same-origin routing', () => {
   const wechat = configuration({ DEV: false, UNI_PLATFORM: 'mp-weixin' }).config;
-  assert.throws(() => wechat.getRequestUrl('/api/v1/coupons'), /VITE_API_BASE_URL/);
+  assert.throws(() => wechat.getRequestUrl('/api/v1/home'), /VITE_API_BASE_URL/);
   const h5 = configuration({ DEV: false, UNI_PLATFORM: 'h5' }).config;
-  assert.equal(h5.getRequestUrl('/api/v1/coupons'), '/api/v1/coupons');
+  assert.equal(h5.getRequestUrl('/api/v1/home'), '/api/v1/home');
   assert.throws(() => h5.getRequestUrl('//outside.example.com'));
 });

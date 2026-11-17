@@ -2,7 +2,7 @@ export function activeSession(token = 'session-token') {
   return {
     token,
     expiresAt: new Date(Date.now() + 3600000).toISOString(),
-    user: { id: `user-${token}`, displayName: '测试用户', development: true },
+    user: { id: 1, displayName: '测试用户', development: true },
   };
 }
 

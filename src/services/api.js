@@ -4,12 +4,6 @@ import { request } from './request.js';
 /** 读取公开首页模块树，不携带用户 Token。 */
 export const getHome = () => request('/api/v1/home');
 
-/** 保留原联盟活动列表接口，供后续联盟流程继续使用。 */
-export const getCoupons = () => request('/api/v1/coupons');
-
-/** 只查询当前已认证用户的订单。 */
-export const getOrders = () => request('/api/v1/orders/me', { auth: true });
-
 /** 读取当前会话对应的公开用户信息。 */
 export const getMe = () => request('/api/v1/users/me', { auth: true });
 
@@ -22,10 +16,3 @@ export const developmentLogin = () => request('/api/v1/auth/dev-login', { method
 /** 将微信临时 code 交给后端完成身份交换。 */
 export const wechatLogin = code =>
   request('/api/v1/auth/wechat-login', { method: 'POST', data: { code } });
-
-/** 生成需要用户归属的联盟目标；固定首页入口不经过该接口。 */
-export const createPromotion = id =>
-  request(`/api/v1/coupons/${encodeURIComponent(id)}/promotion`, {
-    method: 'POST',
-    auth: true,
-  });

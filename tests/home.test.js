@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { filterModules, resolveImageUrl } from '../src/services/home.js';
-import { navigateToPromotion } from '../src/services/navigation.js';
+import { navigateToMiniProgram } from '../src/services/navigation.js';
 
 test('home search respects publication status and hides empty or unknown modules', () => {
   const entries = [
@@ -33,14 +33,14 @@ test('homepage targets support empty path and pass extraData unchanged', async (
       options.success();
     },
   };
-  await navigateToPromotion({ appId: 'wx1234567890abcdef', extraData: { campaign: 'x' } });
+  await navigateToMiniProgram({ appId: 'wx1234567890abcdef', extraData: { campaign: 'x' } });
 });
 test('user cancelling a jump is distinguishable from a navigation failure', async () => {
   global.uni = {
     navigateToMiniProgram: options => options.fail({ errMsg: 'navigateToMiniProgram:fail cancel' }),
   };
   await assert.rejects(
-    navigateToPromotion({ appId: 'wx1234567890abcdef' }),
+    navigateToMiniProgram({ appId: 'wx1234567890abcdef' }),
     e => e.code === 'NAVIGATION_CANCELLED'
   );
 });
