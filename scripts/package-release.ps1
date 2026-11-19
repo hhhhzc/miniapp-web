@@ -50,6 +50,7 @@ Copy-Item -LiteralPath (Join-Path $frontendRoot 'deploy\server.env.example') -De
 Copy-Item -LiteralPath (Join-Path $frontendRoot 'deploy\nginx-http.conf.example') -Destination $output
 Copy-Item -LiteralPath (Join-Path $frontendRoot 'deploy\nginx.conf.example') -Destination $output
 Copy-Item -LiteralPath (Join-Path $frontendRoot 'docs\deployment-and-debugging.md') -Destination (Join-Path $output 'README.md')
+Copy-Item -LiteralPath (Join-Path $frontendRoot 'docs\activity-navigation.md') -Destination $output
 $sqlRoot = Join-Path $output 'sql'
 $optionalRoot = Join-Path $output 'optional'
 [IO.Directory]::CreateDirectory($sqlRoot) | Out-Null
@@ -59,6 +60,7 @@ Copy-Item -LiteralPath (Join-Path $frontendRoot 'deploy\create-database.sql') -D
 Copy-Item -LiteralPath (Join-Path $databaseSource 'schema.sql') -Destination (Join-Path $sqlRoot '001-schema.sql')
 Copy-Item -LiteralPath (Join-Path $frontendRoot 'deploy\runtime-permissions.sql') -Destination (Join-Path $sqlRoot '004-runtime-permissions.sql')
 Copy-Item -LiteralPath (Join-Path $databaseSource 'demo-data.sql') -Destination $optionalRoot
+Copy-Item -LiteralPath (Join-Path $databaseSource 'migrations\20261119_entry_activity.sql') -Destination $optionalRoot
 if ($IncludeDemo) { Copy-Item -LiteralPath (Join-Path $databaseSource 'demo-data.sql') -Destination (Join-Path $sqlRoot '003-demo-data.sql') }
 $hashes = Get-ChildItem -LiteralPath $output -File -Recurse | ForEach-Object {
     $relative = $_.FullName.Substring($output.Length + 1).Replace('\', '/')

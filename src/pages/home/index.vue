@@ -3,7 +3,7 @@
 import { computed, ref } from 'vue';
 import { onShow, onPullDownRefresh } from '@dcloudio/uni-app';
 import { getHome } from '../../services/api.js';
-import { navigateToMiniProgram } from '../../services/navigation.js';
+import { openEntry } from '../../services/navigation.js';
 import { filterModules, resolveImageUrl } from '../../services/home.js';
 import { useAsyncResource } from '../../composables/useAsyncResource.js';
 // 页面只维护展示状态，模块和入口的发布范围由后端公开接口决定。
@@ -47,21 +47,21 @@ async function open(entry) {
     uni.showToast({ title: '这个入口即将开放，敬请期待', icon: 'none' });
     return;
   }
-  // #ifndef MP-WEIXIN
-  uni.showToast({ title: '请在微信小程序中打开', icon: 'none' });
-  return;
-  // #endif
-  // #ifdef MP-WEIXIN
+  if (entry.openMode !== 'DETAIL') {
+    // #ifndef MP-WEIXIN
+    uni.showToast({ title: '请在微信小程序中打开', icon: 'none' });
+    return;
+    // #endif
+  }
   busy.value = true;
   try {
-    await navigateToMiniProgram(entry);
+    await openEntry(entry);
   } catch (failure) {
     if (failure.code !== 'NAVIGATION_CANCELLED')
       uni.showToast({ title: failure.message, icon: 'none' });
   } finally {
     busy.value = false;
   }
-  // #endif
 }
 // 每次重新显示首页都获取最新配置，使后台改动在刷新后生效。
 onShow(load);

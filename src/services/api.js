@@ -4,6 +4,9 @@ import { request } from './request.js';
 /** 读取公开首页模块树，不携带用户 Token。 */
 export const getHome = () => request('/api/v1/home');
 
+/** 活动详情每次读取已发布入口，停用入口或模块后立即返回不可用。 */
+export const getEntry = id => request(`/api/v1/home/entries/${encodeURIComponent(id)}`);
+
 /** 读取当前会话对应的公开用户信息。 */
 export const getMe = () => request('/api/v1/users/me', { auth: true });
 

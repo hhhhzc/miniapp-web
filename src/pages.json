@@ -9,6 +9,14 @@
       }
     },
     {
+      "path": "pages/activity/index",
+      "style": {
+        "navigationBarTitleText": "活动详情",
+        "enablePullDownRefresh": true,
+        "navigationBarBackgroundColor": "#ffe168"
+      }
+    },
+    {
       "path": "pages/profile/index",
       "style": {
         "navigationBarTitleText": "个人中心"

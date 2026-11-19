@@ -147,7 +147,14 @@ createApp({
       if (!current.value) return;
       error.value = '';
       form.value = value
-        ? { ...value, extraJson: JSON.stringify(value.extraData || {}, null, 2) }
+        ? {
+            openMode: 'DIRECT',
+            detailImageUrl: '',
+            detailContent: '',
+            buttonText: '立即领取',
+            ...value,
+            extraJson: JSON.stringify(value.extraData || {}, null, 2),
+          }
         : {
             moduleId: current.value.id,
             title: '',
@@ -157,6 +164,10 @@ createApp({
             theme: 'yellow',
             badge: '',
             targetType: 'NONE',
+            openMode: 'DIRECT',
+            detailImageUrl: '',
+            detailContent: '',
+            buttonText: '立即领取',
             appId: '',
             path: '',
             extraJson: '{}',
@@ -174,6 +185,8 @@ createApp({
       return perform(async () => {
         const body = { ...form.value, sortOrder: Number(form.value.sortOrder) };
         if (modal.value === 'entry') {
+          // 仅展示入口没有可打开的目标，统一保持直接展示。
+          if (body.targetType !== 'MINIPROGRAM') body.openMode = 'DIRECT';
           try {
             body.extraData = JSON.parse(body.extraJson || '{}');
           } catch {
@@ -230,7 +243,7 @@ createApp({
     }
 
     /** 前端先检查类型与大小，服务端仍负责真实格式校验和重新编码。 */
-    function upload(event) {
+    function upload(event, field = 'imageUrl') {
       const file = event.target.files[0];
       if (!file) return;
       if (!['image/png', 'image/jpeg'].includes(file.type) || file.size > 2 * 1024 * 1024) {
@@ -242,7 +255,7 @@ createApp({
       data.append('file', file);
       return perform(async () => {
         const result = await api('/admin/files', { method: 'POST', body: data });
-        form.value.imageUrl = result.url;
+        form.value[field] = result.url;
         event.target.value = '';
       }, '图片已上传，保存入口后生效。');
     }
@@ -599,7 +612,8 @@ createApp({
                           class="target-tag"
                           :class="{pending:entry.targetType !== 'MINIPROGRAM'}"
                         >
-                          {{ entry.targetType === 'MINIPROGRAM' ? '小程序' : '仅展示' }}
+                          {{ entry.targetType === 'MINIPROGRAM' ? (entry.openMode === 'DETAIL' ?
+                          '活动页 → 小程序' : '直接打开小程序') : '仅展示' }}
                         </span>
                       </td>
                       <td class="muted">{{ entry.sortOrder }}</td>
@@ -849,6 +863,14 @@ createApp({
                 </label>
                 <template v-if="form.targetType === 'MINIPROGRAM'">
                   <label>
+                    打开方式
+                    <select v-model="form.openMode">
+                      <option value="DIRECT">直接打开目标小程序</option>
+                      <option value="DETAIL">先进入活动页，再点击按钮前往</option>
+                    </select>
+                    <small>只影响当前入口，其他入口继续按各自配置打开。</small>
+                  </label>
+                  <label>
                     目标 AppID
                     <input
                       v-model="form.appId"
@@ -878,6 +900,71 @@ createApp({
                       />
                     </label>
                   </details>
+                  <template v-if="form.openMode === 'DETAIL'">
+                    <div class="form-divider">活动页内容</div>
+                    <p class="small muted">标题和简介沿用入口配置。详情图留空时使用入口图片。</p>
+                    <div class="image-field">
+                      <div
+                        class="image-preview"
+                        :class="'theme-' + form.theme"
+                      >
+                        <img
+                          v-if="form.detailImageUrl || form.imageUrl"
+                          :src="form.detailImageUrl || form.imageUrl"
+                          alt="活动详情图预览"
+                        />
+                        <span v-else>{{ form.iconText || '券' }}</span>
+                      </div>
+                      <div>
+                        <strong>活动详情图</strong>
+                        <p class="small muted">PNG / JPEG，≤ 2MB</p>
+                        <label class="upload-button">
+                          ↑ 上传详情图
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            @change="upload($event, 'detailImageUrl')"
+                            :disabled="busy"
+                          />
+                        </label>
+                        <button
+                          v-if="form.detailImageUrl"
+                          type="button"
+                          class="text-button danger"
+                          :disabled="busy"
+                          @click="form.detailImageUrl = ''"
+                        >
+                          使用入口图
+                        </button>
+                      </div>
+                    </div>
+                    <label>
+                      详情图地址（可选）
+                      <input
+                        v-model="form.detailImageUrl"
+                        maxlength="1000"
+                        placeholder="上传生成的地址，或 HTTPS 图片地址"
+                      />
+                    </label>
+                    <label>
+                      活动说明（可选）
+                      <textarea
+                        v-model="form.detailContent"
+                        rows="6"
+                        maxlength="4000"
+                        placeholder="填写领取方式、使用规则等，支持换行"
+                      />
+                    </label>
+                    <label>
+                      按钮文字
+                      <input
+                        v-model="form.buttonText"
+                        maxlength="20"
+                        placeholder="立即领取"
+                      />
+                      <small>用户点击按钮后，打开上方配置的目标小程序。</small>
+                    </label>
+                  </template>
                 </template>
               </template>
               <div class="form-columns bottom-fields">
